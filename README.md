@@ -10,7 +10,7 @@ This project is an agentic communication system for e-commerce, It allows users 
 - **Modern UI:** The user interface is built with the Trendyol Baklava Design System to provide a familiar and intuitive user experience.
 - **Fake Data Loading:** The ability to load fake product data into the system for demonstration and testing purposes.
 
-!(UI)[Ekran görüntüsü 2025-11-01 153940.png]
+![UI](./1.png)
 
 ## Architecture
 
