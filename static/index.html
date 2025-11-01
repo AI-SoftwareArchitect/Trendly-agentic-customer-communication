@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendyol Canlı Destek</title>
+    <!-- Baklava UI Library CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@trendyol/baklava/dist/themes/default.css" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@trendyol/baklava/dist/baklava.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            height: 80vh;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #FF6000;
+            color: white;
+            padding: 16px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 80%;
+        }
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .message.agent {
+            align-self: flex-start;
+        }
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 18px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .message.user .message-bubble {
+            background-color: #e0f7fa;
+            color: #333;
+        }
+        .message.agent .message-bubble {
+            background-color: #f1f0f0;
+            color: #333;
+        }
+        .product-container {
+            background-color: #FF6000;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .example-prompts {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            gap: 8px;
+        }
+        .prompt-card {
+            flex: 1;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 16px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+            align-items: center;
+        }
+        .chat-input {
+            flex-grow: 1;
+        }
+        #loading-spinner, #error-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .header-subtitle {
+            font-size: 0.75em;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+        .welcome-message {
+            background-color: #fff3e0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <bl-avatar src="https://www.trendyol.com/favicon.ico" size="large"></bl-avatar>
+                <div class="header-title">
+                    <span>Trendly Canlı Destek</span>
+                    <span class="header-subtitle">Online • Her zaman yanınızda</span>
+                </div>
+            </div>
+            <bl-badge variant="success">Aktif</bl-badge>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <bl-icon name="info"></bl-icon>
+                <strong> Hoş geldiniz!</strong>
+                <p style="margin: 8px 0 0 0; font-size: 0.9em;">Size nasıl yardımcı olabilirim? Ürün bilgisi, stok durumu veya fiyat sorgulamaları için aşağıdaki örnekleri kullanabilir ya da doğrudan soru sorabilirsiniz.</p>
+            </div>
+        </div>
+
+        <div class="example-prompts">
+            <bl-button class="prompt-card" id="prompt1" variant="secondary" size="small">
+                <bl-icon name="phone" slot="icon"></bl-icon>
+                iPhone 15 Pro Max
+            </bl-button>
+            <bl-button class="prompt-card" id="prompt2" variant="secondary" size="small">
+                <bl-icon name="gamepad" slot="icon"></bl-icon>
+                PS5 Slim Stok
+            </bl-button>
+            <bl-button class="prompt-card" id="prompt3" variant="secondary" size="small">
+                <bl-icon name="laptop" slot="icon"></bl-icon>
+                MacBook Pro M3
+            </bl-button>
+        </div>
+
+        <div class="chat-input-area">
+            <bl-input 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Mesajınızı yazın..." 
+                size="large">
+                <bl-icon name="message" slot="icon"></bl-icon>
+            </bl-input>
+            <bl-button 
+                class="send-button" 
+                id="sendMessage" 
+                variant="primary" 
+                size="large"
+                disabled>
+                <bl-icon name="send" slot="icon"></bl-icon>
+                Gönder
+            </bl-button>
+        </div>
+
+        <div id="loading-spinner" style="display: none;">
+            <bl-spinner size="large"></bl-spinner>
+        </div>
+
+        <div id="error-alert" style="display: none;">
+            <bl-alert variant="danger" closable="true">
+                <bl-icon name="alert-triangle" slot="icon"></bl-icon>
+                <span id="error-message"></span>
+            </bl-alert>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatInput');
+            const sendMessageButton = document.getElementById('sendMessage');
+            const chatMessages = document.getElementById('chatMessages');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const errorAlert = document.getElementById('error-alert');
+            const errorMessage = document.getElementById('error-message');
+            const prompt1 = document.getElementById('prompt1');
+            const prompt2 = document.getElementById('prompt2');
+            const prompt3 = document.getElementById('prompt3');
+
+            sendMessageButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('bl-input', (e) => {
+                if (e.target.value.trim() !== '') {
+                    sendMessageButton.disabled = false;
+                } else {
+                    sendMessageButton.disabled = true;
+                }
+            });
+
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            prompt1.addEventListener('click', () => {
+                chatInput.value = 'iPhone 15 Pro Max hakkında bilgi al';
+                sendMessage();
+            });
+
+            prompt2.addEventListener('click', () => {
+                chatInput.value = 'Playstation 5 Slim stok durumu';
+                sendMessage();
+            });
+
+            prompt3.addEventListener('click', () => {
+                chatInput.value = 'MacBook Pro M3 Max fiyatı nedir?';
+                sendMessage();
+            });
+
+            function sendMessage() {
+                const messageText = chatInput.value.trim();
+                if (messageText) {
+                    displayMessage(messageText, 'user');
+                    chatInput.value = '';
+                    sendMessageButton.disabled = true;
+
+                    showLoading(true);
+
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ prompt: messageText }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.response) {
+                            displayMessage(data.response, 'agent');
+                        } else if (data.error) {
+                            showError(data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showError('Error connecting to the server.');
+                    })
+                    .finally(() => {
+                        showLoading(false);
+                    });
+                }
+            }
+
+            function displayMessage(message, sender) {
+                const messageWrapper = document.createElement('div');
+                messageWrapper.classList.add('message', sender);
+
+                const avatar = document.createElement('bl-avatar');
+                const messageBubble = document.createElement('div');
+                messageBubble.classList.add('message-bubble');
+
+                if (message.includes('<product>')) {
+                    const productName = message.match(/<product>(.*?)<\/product>/)[1];
+                    message = message.replace(/<product>.*?<\/product>/, '');
+                    messageBubble.innerHTML = message;
+
+                    const productContainer = document.createElement('div');
+                    productContainer.classList.add('product-container');
+                    productContainer.textContent = productName;
+                    messageBubble.appendChild(productContainer);
+                } else {
+                    messageBubble.textContent = message;
+                }
+
+                if (sender === 'user') {
+                    avatar.innerHTML = 'ME';
+                    messageWrapper.appendChild(messageBubble);
+                    messageWrapper.appendChild(avatar);
+                } else {
+                    avatar.src = 'https://www.trendyol.com/favicon.ico';
+                    avatar.alt = 'Trendyol Assistant';
+                    messageWrapper.appendChild(avatar);
+                    messageWrapper.appendChild(messageBubble);
+                }
+
+                chatMessages.appendChild(messageWrapper);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function showLoading(show) {
+                if (show) {
+                    loadingSpinner.style.display = 'block';
+                } else {
+                    loadingSpinner.style.display = 'none';
+                }
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorAlert.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
