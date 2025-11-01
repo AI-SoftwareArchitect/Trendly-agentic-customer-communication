@@ -85,7 +85,7 @@ graph TD
 
 The user interface is a Claude-like chat screen built with the Trendyol Baklava Design System. It features:
 
-- A header with the Trendyol logo and a badge for unread messages.
+- A header with the logo and a badge for unread messages.
 - A chat window that displays messages from the user and the agent.
 - An input area with example prompt cards.
 - A loading spinner and error alerts.
