@@ -1,6 +1,6 @@
-# Trendyol E-commerce Agentic Communication
+# Trendly E-commerce Agentic Communication
 
-This project is an agentic communication system for e-commerce, specifically designed for Trendyol. It allows users to interact with a chat agent to get information about products, set alerts, and have a seamless shopping experience.
+This project is an agentic communication system for e-commerce, It allows users to interact with a chat agent to get information about products, set alerts, and have a seamless shopping experience.
 
 ## Features
 
